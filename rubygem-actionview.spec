@@ -2,11 +2,11 @@
 %{!?scl:%global pkg_name %{name}}
 
 %global gem_name actionview
-%global bootstrap 1
+%global bootstrap 0
 
 Name: %{?scl_prefix}rubygem-%{gem_name}
 Version: 4.2.6
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Rendering framework putting the V in MVC (part of Rails)
 Group: Development/Languages
 License: MIT
@@ -102,6 +102,9 @@ popd
 %doc %{gem_instdir}/CHANGELOG.md
 
 %changelog
+* Tue Apr 05 2016 Pavel Valena <pvalena@redhat.com> - 4.2.6-2
+- Enable tests
+
 * Mon Apr 04 2016 Pavel Valena <pvalena@redhat.com> - 4.2.6-1
 - Update to 4.2.6
 
