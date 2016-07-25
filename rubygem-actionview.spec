@@ -6,7 +6,7 @@
 
 Name: %{?scl_prefix}rubygem-%{gem_name}
 Version: 4.1.5
-Release: 3%{?dist}
+Release: 5%{?dist}
 Summary: Rendering framework putting the V in MVC (part of Rails)
 Group: Development/Languages
 License: MIT
@@ -17,6 +17,22 @@ Source0: https://rubygems.org/gems/%{gem_name}-%{version}.gem
 # git checkout v4.1.5
 # tar czvf activesupport-4.1.5-tests.tgz test/
 Source1: %{gem_name}-%{version}-tests.tgz
+
+# Fix CVE-2016-0752 Possible Information Leak Vulnerability
+# https://bugzilla.redhat.com/show_bug.cgi?id=1301963
+Patch0: rubygem-actionview-4.1.14.1-CVE-2016-0752-fix-possible-information-leak-vulnerability.patch
+Patch1: rubygem-actionview-4.1.14.1-CVE-2016-0752-fix-possible-information-leak-vulnerability-tests.patch
+
+# Fix CVE-2016-2097: Directory traversal and information leak.
+# https://bugzilla.redhat.com/show_bug.cgi?id=1310043
+Patch2: rubygem-actionview-4.1.14.2-CVE-2016-2097-render_data_leak_2.patch
+Patch3: rubygem-actionview-4.1.14.2-CVE-2016-2097-render_data_leak_2-tests.patch
+
+# Fix CVE-2016-2098: Code injection vulnerability.
+# https://bugzilla.redhat.com/show_bug.cgi?id=1310054
+Patch4: rubygem-actionview-4.1.14.2-secure_inline_with_params.patch
+Patch5: rubygem-actionview-4.1.14.2-secure_inline_with_params-tests.patch
+
 Requires: %{?scl_prefix_ruby}ruby(release)
 Requires: %{?scl_prefix_ruby}ruby(rubygems)
 Requires: %{?scl_prefix}rubygem(builder) >= 3.1
@@ -55,6 +71,12 @@ Documentation for %{pkg_name}.
 %gem_install -n %{SOURCE0}
 %{?scl:EOF}
 
+pushd .%{gem_instdir}
+%patch0 -p2
+%patch2 -p2
+%patch4 -p2
+popd
+
 %build
 
 %install
@@ -68,6 +90,10 @@ cp -pa .%{gem_dir}/* \
 pushd .%{gem_instdir}
 
 tar xzvf %{SOURCE1} -C .
+
+patch -F 0 -p2 < %{PATCH1}
+patch -p2 < %{PATCH3}
+patch -p2 < %{PATCH5}
 
 # This requires rails git structure and only requires bundler in the end
 sed -i "s|require File.expand_path('../../../load_paths', __FILE__)||" ./test/abstract_unit.rb
@@ -97,6 +123,16 @@ popd
 %doc %{gem_instdir}/CHANGELOG.md
 
 %changelog
+* Mon Mar 07 2016 Vít Ondruch <vondruch@redhat.com> - 4.1.5-5
+- Fix directory traversal and information leak.
+  Resolves: CVE-2016-2097
+- Fix code injection vulnerability.
+  Resolves: CVE-2016-2098
+
+* Thu Feb 11 2016 Pavel Valena <pvalena@redhat.com> - 4.1.5-4
+- Fix Possible Information Leak Vulnerability - rhbz#1301963
+  - Resolves: CVE-2016-0752
+
 * Tue Jan 27 2015 Josef Stribny <jstribny@redhat.com> - 4.1.5-3
 - Enable tests
 
