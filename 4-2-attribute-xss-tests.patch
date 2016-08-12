@@ -1,0 +1,37 @@
+From e4abbc8636e1300d14b1fd7e3f05e4e25bc8289e Mon Sep 17 00:00:00 2001
+From: Andrew Carpenter <andrew@criticaljuncture.org>
+Date: Thu, 28 Jul 2016 16:12:21 -0700
+Subject: [PATCH 1/2] ensure tag/content_tag escapes " in attribute vals
+
+Many helpers mark content as HTML-safe without escaping double quotes -- including `sanitize`. Regardless of whether or not the attribute values are HTML-escaped, we want to be sure they don't include double quotes, as that can cause XSS issues. For example: `content_tag(:div, "foo", title: sanitize('" onmouseover="alert(1);//'))`
+
+CVE-2016-6316
+---
+ actionview/lib/action_view/helpers/tag_helper.rb |  2 +-
+ actionview/test/template/tag_helper_test.rb      | 10 ++++++++++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/actionview/test/template/tag_helper_test.rb b/actionview/test/template/tag_helper_test.rb
+index ce89d57..8332dd0 100644
+--- a/actionview/test/template/tag_helper_test.rb
++++ b/actionview/test/template/tag_helper_test.rb
+@@ -140,6 +140,16 @@ class TagHelperTest < ActionView::TestCase
+     assert_equal '<p class="song> play&gt;" />', str
+   end
+ 
++  def test_tag_does_not_honor_html_safe_double_quotes_as_attributes
++    assert_dom_equal '<p title="&quot;">content</p>',
++      content_tag('p', "content", title: '"'.html_safe)
++  end
++
++  def test_data_tag_does_not_honor_html_safe_double_quotes_as_attributes
++    assert_dom_equal '<p data-title="&quot;">content</p>',
++      content_tag('p', "content", data: { title: '"'.html_safe })
++  end
++
+   def test_skip_invalid_escaped_attributes
+     ['&1;', '&#1dfa3;', '& #123;'].each do |escaped|
+       assert_equal %(<a href="#{escaped.gsub(/&/, '&amp;')}" />), tag('a', :href => escaped)
+-- 
+2.8.1
+

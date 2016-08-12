@@ -6,7 +6,7 @@
 
 Name: %{?scl_prefix}rubygem-%{gem_name}
 Version: 4.2.5.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 Summary: Rendering framework putting the V in MVC (part of Rails)
 Group: Development/Languages
 License: MIT
@@ -19,6 +19,8 @@ Source0: https://rubygems.org/gems/%{gem_name}-%{version}.gem
 Source1: %{gem_name}-%{version}-tests.tgz
 Patch0: rubygem-actionview-4.2.5.1-CVE-2016-2098.patch
 Patch1: rubygem-actionview-4.2.5.1-CVE-2016-2098-tests.patch
+Patch2: 4-2-attribute-xss.patch
+Patch3: 4-2-attribute-xss-tests.patch
 Requires: %{?scl_prefix_ruby}ruby(release)
 Requires: %{?scl_prefix_ruby}ruby(rubygems)
 Requires: %{?scl_prefix}rubygem(activesupport) = %{version}
@@ -64,6 +66,7 @@ Documentation for %{pkg_name}.
 
 pushd .%{gem_instdir}
 %patch0 -p2
+%patch2 -p2
 popd
 
 %build
@@ -79,6 +82,7 @@ pushd .%{gem_instdir}
 
 tar xzvf %{SOURCE1} -C .
 patch -p2 < %{PATCH1}
+patch -p2 < %{PATCH3}
 
 # This requires rails git structure and only requires bundler in the end
 sed -i "s|require File.expand_path('../../../load_paths', __FILE__)||" ./test/abstract_unit.rb
@@ -108,6 +112,9 @@ popd
 %doc %{gem_instdir}/CHANGELOG.md
 
 %changelog
+* Fri Aug 12 2016 Dominic Cleal <dominic@cleal.org> 4.2.5.1-3
+- Fix HTML-safe XSS, CVE-2016-6316
+
 * Thu Mar 10 2016 Dominic Cleal <dominic@cleal.org> 4.2.5.1-2
 - Fix insecure params calls from views, CVE-2016-2098
 
